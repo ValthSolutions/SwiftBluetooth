@@ -12,7 +12,6 @@ import Combine
 // MARK: – Combine helpers
 
 public extension CentralManager {
-
     // MARK: waitUntilReady
     func waitUntilReadyPublisher() -> AnyPublisher<Void, Error> {
         Deferred {
@@ -30,7 +29,7 @@ public extension CentralManager {
     }
 
     // MARK: connect
-    func connect(_ peripheral: Peripheral, timeout: TimeInterval,
+    func connectPublisher(_ peripheral: Peripheral, timeout: TimeInterval,
                           options: [String: Any]? = nil) -> AnyPublisher<Peripheral, Error> {
         Deferred {
             Future { [weak self] promise in
@@ -47,7 +46,7 @@ public extension CentralManager {
     }
 
     // MARK: scanForPeripherals
-    func scanForPeripherals(withServices services: [CBUUID]? = nil,
+    func scanForPeripheralsPublisher(withServices services: [CBUUID]? = nil,
                             timeout: TimeInterval? = nil,
                             options: [String: Any]? = nil) -> AnyPublisher<Peripheral, Error> {
         ScanPublisher(parent: self, services: services, options: options)
