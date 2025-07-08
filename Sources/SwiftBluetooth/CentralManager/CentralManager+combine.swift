@@ -12,60 +12,55 @@ import Combine
 // MARK: – Combine helpers
 
 public extension CentralManager {
-    // MARK: waitUntilReady
-    func waitUntilReadyPublisher() -> AnyPublisher<Void, Error> {
+    func bridgeToPublisher<T>(
+        work: @escaping (CentralManager,
+                         @escaping (Result<T, Error>) -> Void) -> Void
+    ) -> AnyPublisher<T, Error> {
+
         Deferred {
             Future { [weak self] promise in
-                guard let self else {
-                    promise(.failure(CentralError.unknown)); return
+                guard let self = self else {
+                    promise(.failure(CentralError.deallocated))
+                    return
                 }
-                self.waitUntilReady { result in
-                    promise(result)
-                }
+                work(self, promise)
             }
         }
         .subscribe(on: eventQueue)
         .eraseToAnyPublisher()
+    }
+
+    // MARK: waitUntilReady
+    func waitUntilReadyPublisher() -> AnyPublisher<Void, Error> {
+        bridgeToPublisher { central, completion in
+            central.waitUntilReady(completionHandler: completion)
+        }
     }
 
     // MARK: connect
     func connectPublisher(_ peripheral: Peripheral, timeout: TimeInterval,
                           options: [String: Any]? = nil) -> AnyPublisher<Peripheral, Error> {
-        Deferred {
-            Future { [weak self] promise in
-                guard let self else {
-                    promise(.failure(CentralError.unknown)); return
-                }
-                self.connect(peripheral, timeout: timeout, options: options, completionHandler: { result in
-                    promise(result)
-                })
-            }
+        bridgeToPublisher { central, completion in
+            central.connect(peripheral,
+                            timeout: timeout,
+                            options: options,
+                            completionHandler: completion)
         }
-        .subscribe(on: eventQueue)
-        .eraseToAnyPublisher()
     }
 
     // MARK: scanForPeripherals
     func scanForPeripheralsPublisher(withServices services: [CBUUID]? = nil,
-                            timeout: TimeInterval? = nil,
-                            options: [String: Any]? = nil) -> AnyPublisher<Peripheral, Error> {
+                                     timeout: TimeInterval? = nil,
+                                     options: [String: Any]? = nil) -> AnyPublisher<Peripheral, Error> {
         ScanPublisher(parent: self, services: services, options: options)
             .eraseToAnyPublisher()
     }
 
     // MARK: cancelPeripheralConnection
     func cancelPeripheralConnectionPublisher(_ peripheral: Peripheral) -> AnyPublisher<Void, Error> {
-        Deferred {
-            Future { [weak self] promise in
-                guard let self else {
-                    promise(.failure(CentralError.unknown)); return
-                }
-                self.cancelPeripheralConnection(peripheral, completionHandler: { result in
-                    promise(result)
-                })
-            }
+        bridgeToPublisher { central, completion in
+            central.cancelPeripheralConnection(peripheral,
+                                               completionHandler: completion)
         }
-        .subscribe(on: eventQueue)
-        .eraseToAnyPublisher()
     }
 }

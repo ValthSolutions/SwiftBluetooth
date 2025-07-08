@@ -16,7 +16,7 @@ public extension Peripheral {
                              for characteristic: Characteristic,
                              type: CBCharacteristicWriteType = .withResponse) -> AnyPublisher<Void, Error> {
         guard let mapped = knownCharacteristics[characteristic.uuid] else {
-            return Fail(error: PeripheralError.unknown).eraseToAnyPublisher()
+            return Fail(error: PeripheralError.unknownCharacteristic).eraseToAnyPublisher()
         }
         return bridgeVoid { completion in
             self.writeValue(data, for: mapped, type: type, completionHandler: completion)

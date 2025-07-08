@@ -16,11 +16,17 @@ struct ScanPublisher: Publisher {
     let services: [CBUUID]?
     let options: [String: Any]?
 
-    func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
-        let subscription = ScanSubscription(parent: parent,
-                                            services: services,
-                                            options: options,
-                                            downstream: subscriber)
+    func receive<S: Subscriber>(subscriber: S)
+    where S.Input == Output, S.Failure == Failure {
+
+        let subscription = AsyncStreamSubscription(
+            parent: parent,
+            factory: { parent in
+                await parent.scanForPeripherals(withServices: services,
+                                                options: options)   
+            },
+            downstream: subscriber
+        )
         subscriber.receive(subscription: subscription)
     }
 }
