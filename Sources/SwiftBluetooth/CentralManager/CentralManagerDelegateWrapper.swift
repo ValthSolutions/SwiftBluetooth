@@ -1,5 +1,6 @@
 import Foundation
 import CoreBluetooth
+import Combine
 
 class CentralManagerDelegateWrapper: NSObject, CBCentralManagerDelegate {
     private weak var parent: CentralManager?
@@ -13,7 +14,7 @@ class CentralManagerDelegateWrapper: NSObject, CBCentralManagerDelegate {
         guard let parent = self.parent else { return }
 
         parent.delegate?.centralManagerDidUpdateState(parent)
-
+        parent.eventSubject.send(.stateUpdated(parent.state))
         parent.eventQueue.async {
             parent.eventSubscriptions.recieve(.stateUpdated(parent.state))
         }

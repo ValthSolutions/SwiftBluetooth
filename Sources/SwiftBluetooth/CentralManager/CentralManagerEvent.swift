@@ -1,7 +1,7 @@
 import Foundation
 import CoreBluetooth
 
-internal enum CentralManagerEvent {
+public enum CentralManagerEvent {
     case stateUpdated(CBManagerState)
     case discovered(Peripheral, [String: Any], NSNumber)
     case connected(Peripheral)

@@ -1,5 +1,6 @@
 import Foundation
 import CoreBluetooth
+import Combine
 
 public class CentralManager: NSObject {
     private(set) var centralManager: CBCentralManager
@@ -9,6 +10,11 @@ public class CentralManager: NSObject {
     internal lazy var eventSubscriptions = AsyncSubscriptionQueue<CentralManagerEvent>(eventQueue)
     private var peripheralMap: [UUID: Peripheral] = [:]
     internal var connectedPeripherals = Set<Peripheral>()
+
+    internal let eventSubject = PassthroughSubject<CentralManagerEvent, Never>()
+    public var eventPublisher: AnyPublisher<CentralManagerEvent, Never> {
+        eventSubject.eraseToAnyPublisher()
+    }
 
     // MARK: - CBCentralManager properties
     public weak var delegate: CentralManagerDelegate? // Accessed from wrappedDelegate directly
